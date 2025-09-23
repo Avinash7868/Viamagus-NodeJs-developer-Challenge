@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { User } from '../users/user.entity';
 
 export enum TaskStatus {
@@ -9,10 +9,13 @@ export enum TaskStatus {
 
 @Entity()
 export class Task {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
-    @Column()
+    @Column({ nullable: false })
+    name: string;
+
+    @Column({ nullable: true })
     description: string;
 
     @Column({ type: 'date' })
@@ -23,4 +26,10 @@ export class Task {
 
     @Column({ type: 'enum', enum: TaskStatus, default: TaskStatus.OPEN })
     status: TaskStatus;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
 }

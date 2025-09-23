@@ -1,36 +1,41 @@
 import { Injectable } from '@nestjs/common';
 import { Task, TaskStatus } from './task.entity';
 import { User } from '../users/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class TasksService {
-    private tasks: Task[] = [];
+    constructor(
+        @InjectRepository(Task)
+        private tasksRepository: Repository<Task>,
+    ) { }
 
-    async createTask(description: string, due_date: string, assignee: User): Promise<Task> {
-        const task: Task = {
-            id: this.tasks.length + 1,
+    async createTask(name: string, description: string, due_date: string, assignee: User): Promise<Task> {
+        const task = this.tasksRepository.create({
+            name,
             description,
             due_date,
             assignee,
             status: TaskStatus.OPEN,
-        };
-        this.tasks.push(task);
-        return task;
+        });
+        return this.tasksRepository.save(task);
     }
 
     async findAll(): Promise<Task[]> {
-        return this.tasks;
+        return this.tasksRepository.find({ relations: ['assignee'] });
     }
 
-    async findById(id: number): Promise<Task | undefined> {
-        return this.tasks.find(t => t.id === id);
+    async findById(id: string): Promise<Task | undefined> {
+        return this.tasksRepository.findOne({ where: { id }, relations: ['assignee'] });
     }
 
-    async updateTask(id: number, updates: Partial<Task>): Promise<Task | undefined> {
-        const task = await this.findById(id);
-        if (task) {
-            Object.assign(task, updates);
+    async updateTask(id: string, updates: Partial<Task>): Promise<Task | undefined> {
+        const task = await this.tasksRepository.findOne({ where: { id } });
+        if (!task) {
+            return undefined;
         }
-        return task;
+        Object.assign(task, updates);
+        return this.tasksRepository.save(task);
     }
 }
