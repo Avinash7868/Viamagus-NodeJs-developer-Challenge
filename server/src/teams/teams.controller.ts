@@ -32,7 +32,6 @@ export class TeamsController {
         @Param('id') id: string,
         @Body() body: { memberIds: string[] }
     ): Promise<Team> {
-        // Fetch users by IDs using UsersService
         const users = await Promise.all(body.memberIds.map(uid => this.usersService.findById(uid)));
         return this.teamsService.updateTeamMembers(id, users);
     }

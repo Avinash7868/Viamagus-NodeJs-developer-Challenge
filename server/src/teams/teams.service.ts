@@ -70,20 +70,25 @@ export class TeamsService {
     return !!team;
   }
 
-  async updateTeamMembers(
-    teamId: string,
-    users: User[],
-  ): Promise<Team | undefined> {
-    try {
-      const team = await this.teamsRepository.findOne({
-        where: { id: teamId },
-        relations: ['members'],
-      });
-      if (!team) return undefined;
-      team.members = users;
-      return this.teamsRepository.save(team);
+    async updateTeamMembers(
+        teamId: string,
+        users: User[],
+    ): Promise<Team | undefined> {
+        try {
+            const team = await this.teamsRepository.findOne({
+                where: { id: teamId },
+                relations: ['members'],
+            });
+        if (!team) throw new Error('Team not found');
+
+        // logic to add new members without duplicating existing ones
+        const existingIds = team.members.map(u => u.id);
+        const newMembers = users.filter(u => !existingIds.includes(u.id));
+        team.members = [...team.members, ...newMembers];
+
+        return this.teamsRepository.save(team);
     } catch (error) {
-      throw new Error('Error finding team by ID: ' + error?.message);
+        throw new Error('Error finding team by ID: ' + error?.message);
     }
-  }
+}
 }

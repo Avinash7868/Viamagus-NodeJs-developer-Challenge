@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Task, TaskStatus } from './task.entity';
 import { User } from '../users/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -20,6 +20,7 @@ export class TasksService {
     assignees: User[],
     teamId: string,
   ): Promise<Task> {
+      try {
     const isMemberChecks = await Promise.all(
       assignees.map((assignee) =>
         this.teamsService.isMemberInTeam(teamId, assignee.id),
@@ -45,28 +46,46 @@ export class TasksService {
       team,
     });
     return this.tasksRepository.save(task);
+      } catch (error) {
+          if (error instanceof BadRequestException || error instanceof NotFoundException) {
+              throw error;
+          }
+          throw new BadRequestException('Error creating task: ' + error?.message);
+      }
   }
 
   async findAll(): Promise<Task[]> {
+      try {
     return this.tasksRepository.find({ relations: ['assignees'] });
+      } catch (error) {
+          throw new Error('Error retrieving all tasks: ' + error?.message);
+      }
   }
 
   async findById(id: string): Promise<Task | undefined> {
+      try {
     return this.tasksRepository.findOne({
       where: { id },
       relations: ['assignees'],
     });
+      } catch (error) {
+          throw new Error('Error finding task by ID: ' + error?.message);
+      }
   }
 
   async updateTask(
     id: string,
     updates: Partial<Task>,
   ): Promise<Task | undefined> {
+      try {
     const task = await this.tasksRepository.findOne({ where: { id } });
     if (!task) {
       return undefined;
     }
     Object.assign(task, updates);
     return this.tasksRepository.save(task);
+      } catch (error) {
+          throw new Error('Error updating task: ' + error?.message);
+      }
   }
 }
