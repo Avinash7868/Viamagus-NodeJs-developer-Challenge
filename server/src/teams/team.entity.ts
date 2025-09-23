@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable } from 'typeorm';
 import { User } from '../users/user.entity';
 
 @Entity()
@@ -9,7 +9,8 @@ export class Team {
     @Column()
     name: string;
 
-    @OneToMany(() => User, user => user.id, { cascade: true })
+    @ManyToMany(() => User, { eager: true })
+    @JoinTable()
     members: User[];
 
     @Column({ nullable: true })

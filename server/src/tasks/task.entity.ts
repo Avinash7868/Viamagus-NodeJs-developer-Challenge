@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
 import { User } from '../users/user.entity';
+import { Team } from 'src/teams';
 
 export enum TaskStatus {
     OPEN = 'OPEN',
@@ -21,11 +22,15 @@ export class Task {
     @Column({ type: 'date' })
     due_date: string;
 
-    @ManyToOne(() => User, { eager: true })
-    assignee: User;
+    @ManyToMany(() => User, { eager: true })
+    @JoinTable()
+    assignees: User[];
 
     @Column({ type: 'enum', enum: TaskStatus, default: TaskStatus.OPEN })
     status: TaskStatus;
+
+    @ManyToOne(() => Team, { eager: true })
+    team: Team;
 
     @CreateDateColumn()
     createdAt: Date;
